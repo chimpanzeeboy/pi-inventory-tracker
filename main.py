@@ -16,6 +16,8 @@ embedded_selfies = []
 NUM_SELFIES = 5
 SELFIE_DURATION = 2.0
 person_in = ""
+capturing = False
+exiting = False
 
 #Checking for object count before and after the inventory is occupied
 
@@ -83,7 +85,7 @@ while True:
     end = time.time()
 
     #Show timing information on YOLO
-    print("YOLO took {:.6f} seconds".format(end-start))
+    # print("YOLO took {:.6f} seconds".format(end-start))
 
     boxes = []
     confidences = []
@@ -132,7 +134,7 @@ while True:
     else:
         first = False
     last_count = now_count.copy()  
-    print(true_count[true_count>0])
+    # print(true_count[true_count>0])
 
     #If capturing is True, capture 5 selfies within 2 seconds, then fed it in compare_face
     if capturing and count>=5:
@@ -155,17 +157,23 @@ while True:
                 occupied = True
                 before_count = true_count.copy()
                 person_in = result
+                print(before_count[before_count>0])
+            capturing = False
     
     elif capturing and count<5:
         print('Waiting for camera to settle...')
+        starttime = time.time()
 
     #Clean up if the person exits
     if exiting and count>=5:
         person_in = ""
         after_count = true_count.copy()
-        diff = after_count-before_count
-        print(diff)
+        print(after_count.loc['clock'])
+        print(before_count.loc['clock'])
+        diff = before_count-after_count
+        print(diff[diff>0])
         exiting = False
+        occupied = False
     elif exiting and count<5:
         print('Waiting for camera to settle...')
     

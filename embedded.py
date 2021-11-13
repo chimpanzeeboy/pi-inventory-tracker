@@ -70,7 +70,7 @@ def selfie():
     embedded_selfie = []
     frames = []
     
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     if cap.isOpened() == False:
         print("Can't connect to camera")
         return None
@@ -121,7 +121,7 @@ def selfie():
 def compare_face(face_features,embedded_selfies,threshold=0.85):
     if len(face_features) == 0 or len(embedded_selfies) == 0:
         euclidean_distance = np.empty((0))
-    names = face_features.keys()
+    names = list(face_features.keys())
     closeness = {names[0]:1}
     max = names[0]
     for name in names:

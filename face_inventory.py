@@ -16,7 +16,7 @@ def compare_face(embedded_id,embedded_selfies,threshold=0.85):
     return matches > len(embedded_selfies)/2
 
 def main():
-    embedded_face = embedded.selfie_nokey()
+    embedded_face = embedded.selfie()
     original_face = []
     names = pd.read_csv('names.csv')
     for name in names['Name'].tolist():
