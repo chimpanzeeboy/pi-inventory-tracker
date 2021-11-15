@@ -70,7 +70,7 @@ def selfie():
     embedded_selfie = []
     frames = []
     
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     if cap.isOpened() == False:
         print("Can't connect to camera")
         return None
