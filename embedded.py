@@ -70,7 +70,7 @@ def selfie():
     embedded_selfie = []
     frames = []
     
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     if cap.isOpened() == False:
         print("Can't connect to camera")
         return None
@@ -118,7 +118,7 @@ def selfie():
     return embedded_selfie
 
 #Return the face that has the lowest euclidean distance
-def compare_face(face_features,embedded_selfies,threshold=0.85):
+def compare_face(face_features,embedded_selfies,threshold=0.8):
     if len(face_features) == 0 or len(embedded_selfies) == 0:
         euclidean_distance = np.empty((0))
     names = list(face_features.keys())

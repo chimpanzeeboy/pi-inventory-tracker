@@ -6,6 +6,9 @@ import pandas as pd
 import embedded
 import pickle
 
+#New Model
+#Push to azure and mqtt
+#Change from keyboard input to physical input
 
 #Variable for face_recognition
 REGISTER_LISTS = pd.read_csv('names.csv')['Name'].tolist()
@@ -32,7 +35,7 @@ for name in REGISTER_LISTS:
 CONFIDENCE = 0.5
 NMS_THRESHOLD =0.3
 
-labelsPath = os.path.join('yolov4-tiny','coco.names')
+labelsPath = os.path.join('yolov4-tiny','obj.names')
 LABELS = open(labelsPath).read().strip().split("\n")
 
 #Set series for counting objects (get only same object with at least 5 frames)
@@ -52,8 +55,8 @@ np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS),3), dtype='uint8')
 
 #Derive the paths to the YOLO weights and model config
-weightsPath = os.path.join('yolov4-tiny','yolov4-tiny.weights')
-configPath = os.path.join('yolov4-tiny','yolov4-tiny.cfg')
+weightsPath = os.path.join('yolov4-tiny','custom-yolov4-tiny-detector_best.weights')
+configPath = os.path.join('yolov4-tiny','custom-yolov4-tiny-detector.cfg')
 
 #Initialize the DarkNet
 net = cv2.dnn.readNetFromDarknet(configPath,weightsPath)
@@ -168,10 +171,14 @@ while True:
     if exiting and count>=5:
         person_in = ""
         after_count = true_count.copy()
-        print(after_count.loc['clock'])
-        print(before_count.loc['clock'])
+        # print(after_count.loc['clock'])
+        # print(before_count.loc['clock'])
         diff = before_count-after_count
-        print(diff[diff>0])
+        diff = diff[diff>0]
+        add = after_count-before_count
+        add = add[add>0]
+        print(diff)
+        print(add)
         exiting = False
         occupied = False
     elif exiting and count<5:

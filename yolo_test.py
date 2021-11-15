@@ -8,7 +8,7 @@ import pandas as pd
 CONFIDENCE = 0.5
 NMS_THRESHOLD =0.3
 
-labelsPath = os.path.join('yolov4-tiny','coco.names')
+labelsPath = os.path.join('yolov4-tiny','obj.names')
 LABELS = open(labelsPath).read().strip().split("\n")
 
 #Set series for counting objects (get only same object with at least 5 frames)
@@ -28,8 +28,8 @@ np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS),3), dtype='uint8')
 
 #Derive the paths to the YOLO weights and model config
-weightsPath = os.path.join('yolov4-tiny','yolov4-tiny.weights')
-configPath = os.path.join('yolov4-tiny','yolov4-tiny.cfg')
+weightsPath = os.path.join('yolov4-tiny','custom-yolov4-tiny-detector_best.weights')
+configPath = os.path.join('yolov4-tiny','custom-yolov4-tiny-detector.cfg')
 
 #Initialize the DarkNet
 net = cv2.dnn.readNetFromDarknet(configPath,weightsPath)
