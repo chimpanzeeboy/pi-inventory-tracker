@@ -5,10 +5,26 @@ import os
 import pandas as pd
 import embedded
 import pickle
+import paho.mqtt.client as paho
 
-#New Model
-#Push to azure and mqtt
-#Change from keyboard input to physical input
+#Call back function for mqtt client
+def on_publish(client,userdata,mid):   #create function for callback
+   print("data published mid=",mid, "\n")
+   pass
+def on_disconnect(client, userdata, rc):
+   print("client disconnected ok") 
+
+#Initiate mqtt client connection to server
+ITEMS_TOPIC = "ISE/mecha/items"
+USER_TOPIC = "ISE/mecha/user"
+broker="test.mosquitto.org"
+port= 8080
+print("connecting to broker ",broker,"on port ",port)
+client= paho.Client("client-socks",transport='websockets') 
+client.on_publish = on_publish
+client.on_disconnect = on_disconnect
+client.connect(broker,port)           #establish connection
+
 
 #Variable for face_recognition
 REGISTER_LISTS = pd.read_csv('names.csv')['Name'].tolist()
@@ -32,7 +48,7 @@ for name in REGISTER_LISTS:
         face_features[name] = pickle.load(f)
 
 #Set minimum confidence
-CONFIDENCE = 0.5
+CONFIDENCE = 0.6
 NMS_THRESHOLD =0.3
 
 labelsPath = os.path.join('yolov4-tiny','obj.names')
@@ -167,6 +183,12 @@ while True:
         print('Waiting for camera to settle...')
         starttime = time.time()
 
+    if count==5 and not capturing:
+        message = embedded.items_messages(true_count)
+        client.publish(ITEMS_TOPIC,message)
+        time.sleep(0.1)
+
+
     #Clean up if the person exits
     if exiting and count>=5:
         person_in = ""
@@ -177,10 +199,11 @@ while True:
         diff = diff[diff>0]
         add = after_count-before_count
         add = add[add>0]
-        print(diff)
-        print(add)
+        message = embedded.user_message(person_in,add,diff)
+        client.publish(USER_TOPIC,message)
         exiting = False
         occupied = False
+        time.sleep(0.5)
     elif exiting and count<5:
         print('Waiting for camera to settle...')
     

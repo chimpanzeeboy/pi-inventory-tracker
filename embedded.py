@@ -3,6 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import pandas as pd
 #ReadNetfromCaffe
 #Config path
 protoPath = os.path.join(os.getcwd(),'face_detector','deploy.prototxt.txt')
@@ -122,7 +123,7 @@ def compare_face(face_features,embedded_selfies,threshold=0.8):
     if len(face_features) == 0 or len(embedded_selfies) == 0:
         euclidean_distance = np.empty((0))
     names = list(face_features.keys())
-    closeness = {names[0]:1}
+    closeness = {name:1 for name in names}
     max = names[0]
     for name in names:
         euclidean_distances = []
@@ -130,12 +131,34 @@ def compare_face(face_features,embedded_selfies,threshold=0.8):
             euclidean_distances.append(np.linalg.norm(embedded_img-face_features[name]))
         euclidean_distance = np.mean(euclidean_distances)
         closeness[name] = euclidean_distance
+        print("Comparing with {}, Closeness: {}".format(name,euclidean_distance))
         if euclidean_distance < closeness[max]:
             max = name
     if closeness[max] < threshold:
         return max
     else:
         return ""
+
+#For preparing message to be sent
+def items_message(items):
+    items_str = str(items.to_dict())[1:-1]
+    items_str = items_str.split('\'')
+    items_str = ''.join(items_str)
+    items_str = items_str.split(',')
+    items_str = ''.join(items_str)
+    items_str = items_str.split()
+    message = []
+    for i in range(len(items_str)):
+        if i%2==0:
+            message.append(''.join([items_str[i],items_str[i+1]]))
+    message = ' '.join(message)
+    return message
+def user_message(user, adds, diffs):
+    adds = items_message(adds)
+    diffs = items_message(diffs)
+    message = user+' '+adds+' '+diffs
+    return message
+    
             
 
     
