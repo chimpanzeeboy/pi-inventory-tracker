@@ -147,10 +147,16 @@ def items_message(items):
     items_str = items_str.split(',')
     items_str = ''.join(items_str)
     items_str = items_str.split()
+    if 'Juice:' in items_str:
+        items_str.remove('Juice:')
     message = []
-    for i in range(len(items_str)):
+    for i in range(len(items_str)-1):
+        if items_str[i] == 'Orange':
+            items_str[i] = 'Orange_Juice:'
         if i%2==0:
             message.append(''.join([items_str[i],items_str[i+1]]))
+    print(message)
+            
     message = ' '.join(message)
     return message
 def user_message(user, adds, diffs):

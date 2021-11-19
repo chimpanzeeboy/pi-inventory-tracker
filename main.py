@@ -55,11 +55,11 @@ labelsPath = os.path.join('yolov4-tiny','obj.names')
 LABELS = open(labelsPath).read().strip().split("\n")
 
 #Set series for counting objects (get only same object with at least 5 frames)
-last_count = pd.Series(np.zeros(len(LABELS)))
+last_count = pd.Series(np.zeros(len(LABELS))).astype(int)
 last_count.index = LABELS
-now_count = pd.Series(np.zeros(len(LABELS)))
+now_count = pd.Series(np.zeros(len(LABELS))).astype(int)
 now_count.index = LABELS
-true_count = pd.Series(np.zeros(len(LABELS)))
+true_count = pd.Series(np.zeros(len(LABELS))).astype(int)
 true_count.index = LABELS
 first = True
 CONSECUTIVE_FRAME = 5
@@ -183,15 +183,16 @@ while True:
         print('Waiting for camera to settle...')
         starttime = time.time()
 
-    if count==5 and not capturing:
-        message = embedded.items_messages(true_count)
+    if count==5:
+        print(true_count)
+        message = embedded.items_message(true_count)
         client.publish(ITEMS_TOPIC,message)
         time.sleep(0.1)
 
 
     #Clean up if the person exits
     if exiting and count>=5:
-        person_in = ""
+        
         after_count = true_count.copy()
         # print(after_count.loc['clock'])
         # print(before_count.loc['clock'])
@@ -201,6 +202,7 @@ while True:
         add = add[add>0]
         message = embedded.user_message(person_in,add,diff)
         client.publish(USER_TOPIC,message)
+        person_in = ""
         exiting = False
         occupied = False
         time.sleep(0.5)
@@ -225,3 +227,4 @@ while True:
 vid.release()
 face_vid.release()
 cv2.destroyAllWindows()
+client.disconnect()
