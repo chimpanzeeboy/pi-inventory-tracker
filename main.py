@@ -7,6 +7,25 @@ import embedded
 import pickle
 import paho.mqtt.client as paho
 
+# R Pi
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+#stop_button_pin = 
+init_button_pin = 24
+exit_button_pin = 25
+relay_pin = 18
+#GPIO.setup(stop_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(relay_pin, GPIO.OUT)
+GPIO.setup(init_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(exit_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.output(relay_pin, 0)
+#Door opening variables
+door_open = False
+door_start = 0
+TIME = 10
+
+
 #Call back function for mqtt client
 def on_publish(client,userdata,mid):   #create function for callback
    print("data published mid=",mid, "\n")
@@ -48,18 +67,18 @@ for name in REGISTER_LISTS:
         face_features[name] = pickle.load(f)
 
 #Set minimum confidence
-CONFIDENCE = 0.6
+CONFIDENCE = 0.5
 NMS_THRESHOLD =0.3
 
 labelsPath = os.path.join('yolov4-tiny','obj.names')
 LABELS = open(labelsPath).read().strip().split("\n")
 
 #Set series for counting objects (get only same object with at least 5 frames)
-last_count = pd.Series(np.zeros(len(LABELS))).astype(int)
+last_count = pd.Series(np.zeros(len(LABELS)))
 last_count.index = LABELS
-now_count = pd.Series(np.zeros(len(LABELS))).astype(int)
+now_count = pd.Series(np.zeros(len(LABELS)))
 now_count.index = LABELS
-true_count = pd.Series(np.zeros(len(LABELS))).astype(int)
+true_count = pd.Series(np.zeros(len(LABELS)))
 true_count.index = LABELS
 first = True
 CONSECUTIVE_FRAME = 5
@@ -84,7 +103,7 @@ print(ln)
 vid = cv2.VideoCapture(0)
 
 #Read from another webcam for face recognition
-face_vid = cv2.VideoCapture(1)
+face_vid = cv2.VideoCapture(2)
 
 
 while True:
@@ -154,16 +173,20 @@ while True:
         first = False
     last_count = now_count.copy()  
     # print(true_count[true_count>0])
-
+    
+    #Open the door for TIME second
+    if door_open and time.time()-door_start>TIME:
+        GPIO.output(relay_pin, 0)
+        door_open=False
     #If capturing is True, capture 5 selfies within 2 seconds, then fed it in compare_face
     if capturing and count>=5:
         now = time.time()
         delta = now-starttime
         if delta>=SELFIE_DURATION/NUM_SELFIES:
-            print('Capturing')
+            print('Capturing {} picture'.format(len(selfie_frames)+1))
             selfie_frames.append(face_image)
             startime = time.time()
-        if len(selfie_frames) == NUM_SELFIES:
+        if len(selfie_frames) >= NUM_SELFIES:
             capturing=False
             embedded_selfies = [embedded.get_embedding(selfie_frame) for selfie_frame in selfie_frames]
             result = embedded.compare_face(face_features,embedded_selfies)
@@ -172,6 +195,9 @@ while True:
             else:
                 #-----Insert magnetic lock code here!------#
                 print("Welcome! {}".format(result))
+                GPIO.output(relay_pin, 1)
+                door_open=True
+                door_start=time.time()
                 #------------------------------------------#
                 occupied = True
                 before_count = true_count.copy()
@@ -183,12 +209,11 @@ while True:
         print('Waiting for camera to settle...')
         starttime = time.time()
 
-    if count==5:
-        print(true_count)
-        message = embedded.items_message(true_count)
+    if count==5 and not capturing:
+        message = embedded.items_message(true_count.astype(int))
         client.publish(ITEMS_TOPIC,message)
         time.sleep(0.1)
-
+        
 
     #Clean up if the person exits
     if exiting and count>=5:
@@ -200,12 +225,11 @@ while True:
         diff = diff[diff>0]
         add = after_count-before_count
         add = add[add>0]
-        message = embedded.user_message(person_in,add,diff)
+        message = embedded.user_message(person_in,add.astype(int),diff.astype(int))
         client.publish(USER_TOPIC,message)
         person_in = ""
         exiting = False
         occupied = False
-        time.sleep(0.5)
     elif exiting and count<5:
         print('Waiting for camera to settle...')
     
@@ -217,14 +241,18 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    elif cv2.waitKey(1) == ord('i') and not capturing and not occupied:
+    elif GPIO.input(init_button_pin)==0 and not capturing and not occupied and not door_open:
+        selfie_frames=[]
+        embedded_selfies=[]
         capturing = True
         starttime=time.time()
         print('Performing face recognition...')
-    elif cv2.waitKey(1) == ord('o') and occupied:
+    elif GPIO.input(exit_button_pin)==0 and occupied and not door_open:
         exiting = True
+        GPIO.output(relay_pin, 1)
+        door_open=True
+        door_start=time.time()
         print('{} exiting...'.format(person_in))
 vid.release()
 face_vid.release()
 cv2.destroyAllWindows()
-client.disconnect()

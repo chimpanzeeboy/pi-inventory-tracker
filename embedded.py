@@ -4,6 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import pandas as pd
+# Rpi
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+init_button_pin = 24
+exit_button_pin = 25
+GPIO.setup(init_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(exit_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
 #ReadNetfromCaffe
 #Config path
 protoPath = os.path.join(os.getcwd(),'face_detector','deploy.prototxt.txt')
@@ -71,7 +80,7 @@ def selfie():
     embedded_selfie = []
     frames = []
     
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(2)
     if cap.isOpened() == False:
         print("Can't connect to camera")
         return None
@@ -103,12 +112,12 @@ def selfie():
                     break
             #Selfie on y key
             
-            elif cv2.waitKey(1) == ord('y'):
+            elif GPIO.input(init_button_pin)==0:
                 capturing = True
                 starttime=time.time()
                 print('Y')
             #Exit on q key
-            elif cv2.waitKey(1) & 0xFF == ord('q'):
+            elif GPIO.input(exit_button_pin)==0:
                 break
     cap.release()
     cv2.destroyAllWindows()
@@ -153,6 +162,7 @@ def items_message(items):
     for i in range(len(items_str)-1):
         if items_str[i] == 'Orange':
             items_str[i] = 'Orange_Juice:'
+        items_str[i] = items_str[i].replace(items_str[i][0],items_str[i][0].upper())
         if i%2==0:
             message.append(''.join([items_str[i],items_str[i+1]]))
     print(message)
@@ -160,8 +170,8 @@ def items_message(items):
     message = ' '.join(message)
     return message
 def user_message(user, adds, diffs):
-    adds = items_message(adds)
-    diffs = items_message(diffs)
+    adds = ','.join(items_message(adds).split(' '))
+    diffs =','.join(items_message(diffs).split(' '))
     message = user+' '+adds+' '+diffs
     return message
     
