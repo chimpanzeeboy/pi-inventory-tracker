@@ -205,10 +205,12 @@ while True:
                 print(before_count[before_count>0])
             capturing = False
     
+    #Wait for stable camera before loggin person in
     elif capturing and count<5:
         print('Waiting for camera to settle...')
         starttime = time.time()
 
+    #Publish message every time the object is newly stable.
     if count==5 and not capturing:
         message = embedded.items_message(true_count.astype(int))
         client.publish(ITEMS_TOPIC,message)
@@ -225,11 +227,13 @@ while True:
         diff = diff[diff>0]
         add = after_count-before_count
         add = add[add>0]
+        #Publish difference between before and after count
         message = embedded.user_message(person_in,add.astype(int),diff.astype(int))
         client.publish(USER_TOPIC,message)
         person_in = ""
         exiting = False
         occupied = False
+    #Wait for stable camera before person exits
     elif exiting and count<5:
         print('Waiting for camera to settle...')
     
@@ -241,12 +245,14 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+    #Check if init button has been pressed
     elif GPIO.input(init_button_pin)==0 and not capturing and not occupied and not door_open:
         selfie_frames=[]
         embedded_selfies=[]
         capturing = True
         starttime=time.time()
         print('Performing face recognition...')
+    #Check if exit button has been pressed
     elif GPIO.input(exit_button_pin)==0 and occupied and not door_open:
         exiting = True
         GPIO.output(relay_pin, 1)
