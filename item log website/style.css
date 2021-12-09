@@ -1,0 +1,78 @@
+html, body{
+    background-color: rgb(245, 237, 226);
+    margin: 0;
+    padding: 0;
+}
+.top {
+    text-align: center;
+    font-family: "Lucida Console", "Courier New", monospace;
+    background-color: rgb(41, 40, 40);
+    color: gainsboro;
+    padding: 20px;
+    width: 100%;
+}
+.main {
+    max-width: 1000px;
+    margin: auto;
+}
+.title {
+    padding: 20px;
+    margin-left: 5%;
+}
+.container-fluid{
+    width: 90%;
+}
+.thead{
+    background-color: rgb(41, 40, 40);
+    color: gainsboro;
+}
+.col-md{
+    border: 1px solid black;
+    text-align: center;
+    line-height: 2;
+    vertical-align: middle;
+}
+.profile-pic{
+    max-width: 200px;
+}
+.button{
+    text-decoration: none;
+    color: gainsboro;
+    background-color: rgb(41, 40, 40);
+}
+.button-outline {
+    margin-left: 10%;
+}
+.input-group{
+    margin-left: 5%;
+    margin-right: 20%;
+}
+.modal-body{
+    text-align: left;
+}
+.box{
+    width: 90%;
+    margin-left: 5%;
+}
+.listOfItems{
+    align-items: center;
+    font-size: large;
+    padding-left: 30px;
+}
+#table-wrapper {
+    position:relative;
+    
+  }
+  #table-scroll {
+    height: 40rem;
+    overflow: auto;  
+    margin-top: 20px;
+  }
+  #table-wrapper table {
+    width:100%;
+  
+  }
+#headerOfTable{
+    position: sticky;
+    top: 0px;
+}
