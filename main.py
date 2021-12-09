@@ -167,7 +167,7 @@ while True:
             count += 1
         else:
             count = 0
-        if count >= CONSECUTIVE_FRAME:
+        if count == CONSECUTIVE_FRAME:
             true_count = now_count.copy()
     else:
         first = False
